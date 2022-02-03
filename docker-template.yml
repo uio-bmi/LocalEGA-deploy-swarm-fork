@@ -162,7 +162,7 @@ services:
 
   # Private stack
   ingest:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
     deploy:
       restart_policy:
         condition: on-failure
@@ -219,7 +219,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
     deploy:
       restart_policy:
         condition: on-failure
@@ -273,7 +273,7 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
     deploy:
       restart_policy:
         condition: on-failure
@@ -319,7 +319,7 @@ services:
         mode: 0600
 
   mapper:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.5
+    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
     deploy:
       restart_policy:
         condition: on-failure
