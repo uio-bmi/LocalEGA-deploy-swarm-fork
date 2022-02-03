@@ -93,7 +93,7 @@ services:
 
   # Public stack
   proxy:
-    image: ghcr.io/uio-bmi/localega-tsd-proxy:v1.0.1
+    image: ghcr.io/uio-bmi/localega-tsd-proxy:v1.0.3
     ports:
       - 443:8080
     deploy:
