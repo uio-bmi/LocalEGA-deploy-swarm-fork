@@ -146,7 +146,7 @@ services:
       - LEGA_MQ_EXCHANGE=sda
 
   postgres:
-    image: postgres
+    image: postgres:latest
     ports:
       - 5433:5432
     deploy:
