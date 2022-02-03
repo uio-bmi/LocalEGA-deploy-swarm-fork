@@ -364,7 +364,7 @@ services:
         mode: 0600
 
   doa:
-    image: ghcr.io/neicnordic/sda-doa:v1.6.3
+    image: neicnordic/sda-doa:release-v1.6.0
     ports:
       - 80:8080
     deploy:
