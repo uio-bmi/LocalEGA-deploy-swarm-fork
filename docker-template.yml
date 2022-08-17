@@ -21,7 +21,7 @@ services:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
 
   db:
-    image: ghcr.io/neicnordic/sda-db:v1.4.0
+    image: ghcr.io/neicnordic/sda-db:v1.4.5
     ports:
       - 5432:5432
     deploy:
