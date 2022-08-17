@@ -162,7 +162,7 @@ services:
 
   # Private stack
   ingest:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
+    image: ghcr.io/neicnordic/sda-pipeline:v0.3.39
     deploy:
       restart_policy:
         condition: on-failure
@@ -219,7 +219,7 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
+    image: ghcr.io/neicnordic/sda-pipeline:v0.3.39
     deploy:
       restart_policy:
         condition: on-failure
@@ -252,6 +252,8 @@ services:
       - DB_SSLMODE=require
       - DB_CLIENTCERT=/etc/ega/client.cert
       - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - INBOX_TYPE=posix
+      - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
     secrets:
       - source: rootCA.pem
@@ -269,11 +271,12 @@ services:
       - source: ega.sec.pem
         target: /etc/ega/ega.sec
     volumes:
+      - /tmp/tsd:/ega/inbox
       - /tmp/vault:/ega/archive
     command: "sda-verify"
 
   finalize:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
+    image: ghcr.io/neicnordic/sda-pipeline:v0.3.39
     deploy:
       restart_policy:
         condition: on-failure
@@ -319,7 +322,7 @@ services:
         mode: 0600
 
   mapper:
-    image: ghcr.io/neicnordic/sda-pipeline:v0.2.13
+    image: ghcr.io/neicnordic/sda-pipeline:v0.3.39
     deploy:
       restart_policy:
         condition: on-failure
