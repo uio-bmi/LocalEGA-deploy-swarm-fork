@@ -2,6 +2,9 @@ SHELL := /bin/bash -O expand_aliases
 
 FILES := localhost+5.pem localhost+5-key.pem localhost+5-client.pem localhost+5-client-key.pem rootCA.pem rootCA.p12 localhost+5.p12 localhost+5-client.p12 localhost+5-client-key.der rootCA-key.pem docker-stack.yml jwt.pub.pem jwt.priv.pem ega.pub.pem ega.sec.pass ega.sec.pem server.pem server-key.pem server.p12 client.pem client-key.pem client-key.der client.p12 init-mappings-db.sh
 
+include .env
+export $(shell sed 's/=.*//' .env)
+
 export CAROOT := $(shell mkcert -CAROOT)
 export ROOT_CERT_PASSWORD=r00t_cert_passw0rd
 export TSD_ROOT_CERT_PASSWORD=r00t_cert_passw0rd

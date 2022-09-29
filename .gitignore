@@ -202,3 +202,6 @@ buildNumber.properties
 ega.sec.pass
 init-mappings-db.sh
 docker-stack.yml
+
+# env
+.env
