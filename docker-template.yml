@@ -20,7 +20,7 @@ services:
     volumes:
       - /tmp/tsd:/tsd/p11/data/durable/apps/ega/
     user: "65534:65534"
-    
+
 
   db:
     image: ghcr.io/neicnordic/sda-db:latest
@@ -64,7 +64,7 @@ services:
       retries: 3
 
   mq:
-    image: ghcr.io/uio-bmi/localega-broker:latest
+    image: ghcr.io/uio-bmi/localega-broker:cancel_messages
     ports:
       - 5671:5671
       - 15671:15671
@@ -137,8 +137,8 @@ services:
       - source: jwt.pub.pem
         target: /etc/ega/jwt/visa.pem
 
-  interceptor:
-    image: ghcr.io/uio-bmi/mq-interceptor:latest
+  mq-interceptor:
+    image: ghcr.io/uio-bmi/mq-interceptor:cancel_messages
     depends_on:
       - cegamq
       - mq
@@ -155,6 +155,7 @@ services:
       - CEGA_MQ_QUEUE=v1.files
       - LEGA_MQ_CONNECTION={{MQ_CONNECTION}}
       - LEGA_MQ_EXCHANGE=sda
+      - LEGA_MQ_QUEUE=files
 
   postgres:
     image: postgres
@@ -173,7 +174,7 @@ services:
 
   # Private stack
   ingest:
-    image: ghcr.io/neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:cancel_messages
     depends_on:
       - mq
       - db
@@ -233,11 +234,11 @@ services:
     command: "sda-ingest"
 
   verify:
-    image: ghcr.io/neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:cancel_messages
     depends_on:
       - mq
       - db
-    deploy:	
+    deploy:
       restart_policy:
         condition: on-failure
         delay: 5s
@@ -269,7 +270,7 @@ services:
       - DB_SSLMODE=require
       - DB_CLIENTCERT=/etc/ega/client.cert
       - DB_CLIENTKEY=/etc/ega/client-key.cert
-      - INBOX_LOCATION=/ega/inbox	
+      - INBOX_LOCATION=/ega/inbox
       - LOG_LEVEL=debug
     secrets:
       - source: rootCA.pem
@@ -292,10 +293,10 @@ services:
     command: "sda-verify"
 
   finalize:
-    image: ghcr.io/neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:cancel_messages
     depends_on:
       - mq
-      - db    
+      - db
     deploy:
       restart_policy:
         condition: on-failure
@@ -341,10 +342,10 @@ services:
         mode: 0600
 
   mapper:
-    image: ghcr.io/neicnordic/sda-pipeline:latest
+    image: ghcr.io/neicnordic/sda-pipeline:cancel_messages
     depends_on:
       - mq
-      - db    
+      - db
     deploy:
       restart_policy:
         condition: on-failure
@@ -392,7 +393,7 @@ services:
     image: neicnordic/sda-doa:release-v1.6.0
     depends_on:
       - mq
-      - db    
+      - db
     ports:
       - 80:8080
     deploy:
@@ -427,12 +428,60 @@ services:
       - /tmp/vault:/ega/archive
     user: "65534:65534"
 
+  sda-interceptor:
+    image: ghcr.io/neicnordic/sda-pipeline:cancel_messages
+    depends_on:
+      - mq
+      - db
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 120s
+    environment:
+      - BROKER_HOST={{MQ_HOST}}
+      - BROKER_PORT=5671
+      - BROKER_USER={{PRIVATE_BROKER_USER}}
+      - BROKER_PASSWORD={{PRIVATE_BROKER_PASSWORD}}
+      - BROKER_VHOST={{PRIVATE_BROKER_VHOST}}
+      - BROKER_QUEUE=files
+      - BROKER_EXCHANGE=sda
+      - BROKER_ROUTINGKEY=files
+      - BROKER_ROUTINGERROR=error
+      - BROKER_SSL=true
+      - BROKER_VERIFYPEER=true
+      - BROKER_CACERT=/etc/ega/CA.cert
+      - BROKER_CLIENTCERT=/etc/ega/client.cert
+      - BROKER_CLIENTKEY=/etc/ega/client-key.cert
+      - DB_HOST={{DB_HOST}}
+      - DB_PORT=5432
+      - DB_USER={{DB_LEGA_IN_USER}}
+      - DB_PASSWORD={{DB_LEGA_IN_PASSWORD}}
+      - DB_DATABASE=lega
+      - DB_SSLMODE=require
+      - DB_CLIENTCERT=/etc/ega/client.cert
+      - DB_CLIENTKEY=/etc/ega/client-key.cert
+      - LOG_LEVEL=debug
+    command: "sda-intercept"
+    secrets:
+      - source: rootCA.pem
+        target: /etc/ega/CA.cert
+      - source: client.pem
+        target: /etc/ega/client.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
+      - source: client-key.pem
+        target: /etc/ega/client-key.cert
+        uid: '65534'
+        gid: '65534'
+        mode: 0600
 
   # CEGA mock
   # Plain RabbitMQ only for now - cega messages triggered manually by test code
   # based on neicnordic/sda-auth/.github/intergration/docker-compose.yml
-  # CEGA-auth based on neicnordic/sda-auth/dev-server/docker-compose.yml 
-  
+  # CEGA-auth based on neicnordic/sda-auth/dev-server/docker-compose.yml
+
   cegamq:
     image: rabbitmq:3.8.16-management-alpine
     environment:
@@ -454,7 +503,7 @@ services:
         gid: '101'
         mode: 0600
       - source: rootCA.pem
-        target: /etc/rabbitmq/ssl/ca.pem      
+        target: /etc/rabbitmq/ssl/ca.pem
     volumes:
       - ./cega.conf:/etc/rabbitmq/conf/cega.conf
       - ./cega.json:/etc/rabbitmq/conf/cega.json
@@ -470,7 +519,7 @@ services:
       interval: 5s
       timeout: 20s
       retries: 3
-      
+
   cega-auth:
     container_name: cega-auth
     image: egarchive/lega-base:release.v0.2.0
